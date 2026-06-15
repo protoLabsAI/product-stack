@@ -1,0 +1,54 @@
+name: bundle
+
+# Validate the bundle manifest (structure + pins exist), and — on a schedule — open a
+# PR when a member cuts a newer release tag (ADR 0049 pin lifecycle). This bundle skips
+# the heavy "install into a fresh protoAgent and probe views" leg from the template:
+# the member plugins each carry their own test suite, so the bundle's job is to keep the
+# pin set well-formed and current.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1" # weekly, Monday 06:17 UTC — surface a rotted/outdated pin set
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ${{ vars.NSC_RUNNER || 'namespace-profile-protolabs-linux' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Validate manifest + pins
+        run: python3 scripts/validate_bundle.py protoagent.bundle.yaml
+
+  bump:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ vars.NSC_RUNNER || 'namespace-profile-protolabs-linux' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag-pinned members for newer releases
+        id: check
+        run: |
+          python3 scripts/check_bundle_updates.py protoagent.bundle.yaml | tee /tmp/bumps.txt
+          echo "changed=$(git diff --quiet && echo false || echo true)" >> "$GITHUB_OUTPUT"
+      - name: Open the pin-bump PR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch="bump-pins-$(date +%Y%m%d)"
+          git config user.name "bundle-bot"
+          git config user.email "bundle-bot@users.noreply.github.com"
+          git checkout -b "$branch"
+          git commit -am "chore: bump plugin pins to latest release tags"
+          git push origin "$branch"
+          gh pr create --fill --body "$(printf 'Automated pin bump (ADR 0049).\n\n```\n%s\n```\n\nRe-verify the combo, then merge.' "$(cat /tmp/bumps.txt)")"

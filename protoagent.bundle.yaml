@@ -1,0 +1,35 @@
+# A protoAgent plugin BUNDLE (ADR 0040) — a curated, pinned set of plugins installed
+# together with one command. The Product-Manager counterpart to pm-stack (which is the
+# Project-Manager / board-driven shipping stack). Install:
+#   python -m server plugin install https://github.com/protoLabsAI/product-stack
+#
+# PIN RULES (ADR 0049): members pin release TAGS — legible, and ls-remote-able so the
+# console's update advisory can see a newer release; the installer still locks the
+# resolved commit SHA in plugins.lock (the tag is the requested ref, the lock is the
+# reproducibility truth). Keep member entries ON ONE LINE — scripts/check_bundle_updates.py
+# rewrites the `ref:` token in place (comment-preserving).
+
+id: product-stack
+name: Product Manager Stack
+description: >-
+  A product-manager agent stack — research, strategy, discovery, and specs, with everything
+  visualized inline. Composes the Product Manager toolkit (65 PM skills + a provenance-enforced
+  PM Brain + specialist subagents) with generative UI for roadmaps, funnels, personas, and
+  journey maps. For board-driven shipping (decompose an idea and ship it through coding agents),
+  see the sibling pm-stack (Project Manager).
+
+# The core version this pin set was last verified against (ADR 0049 rule 2).
+verified_against: 0.41.0
+
+plugins:
+  - { id: pm, url: https://github.com/protoLabsAI/pm-plugin, ref: v0.1.0 }
+  - { id: artifact, url: https://github.com/protoLabsAI/artifact-plugin, ref: v0.11.0 }
+
+enabled: [pm, artifact]   # suggested turn-on list (you apply it to plugins.enabled)
+
+# Agent archetype (ADR 0042) — presents this bundle as a starter "agent type" in the
+# new-agent picker. Additive metadata; it doesn't change the bundle shape.
+archetype:
+  label: Product Manager
+  icon: Compass
+  blurb: Researches, strategizes, and specs products from evidence — logs decisions with provenance and renders roadmaps, funnels, and personas inline.
