@@ -17,6 +17,8 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write # labeling the pin-bump PR (`gh pr edit --add-label`) rides the issues API
+  actions: read # `gh run list`, to detect the approval-required stall below
 
 jobs:
   validate:
@@ -30,6 +32,13 @@ jobs:
       - name: Validate manifest + pins
         run: python3 scripts/validate_bundle.py protoagent.bundle.yaml
 
+  # ONE candidate at a time (#2645), and the GITHUB_TOKEN approval-required stall made
+  # visible instead of silent — same contract as the other 3 stacks and the protoAgent
+  # template, see README.md "Pin-bump PR lifecycle". Logic lives in
+  # scripts/bump_pins_pr.sh (#2669) — a real, unit-tested script rather than inline
+  # YAML bash. This job's OWN `validate` step above stays the lighter
+  # manifest-structure-only contract (deliberate, see the file header comment) — only
+  # the `bump` job's PR-lifecycle bug is shared with the other stacks.
   bump:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ vars.NSC_RUNNER || 'namespace-profile-protolabs-linux' }}
@@ -40,15 +49,20 @@ jobs:
         run: |
           python3 scripts/check_bundle_updates.py protoagent.bundle.yaml | tee /tmp/bumps.txt
           echo "changed=$(git diff --quiet && echo false || echo true)" >> "$GITHUB_OUTPUT"
-      - name: Open the pin-bump PR
+      - name: Open or update the pin-bump PR
+        if: steps.check.outputs.changed == 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash "$GITHUB_WORKSPACE/scripts/bump_pins_pr.sh" open-or-update
+      - name: Flag the approval-required verify run
         if: steps.check.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          branch="bump-pins-$(date +%Y%m%d)"
-          git config user.name "bundle-bot"
-          git config user.email "bundle-bot@users.noreply.github.com"
-          git checkout -b "$branch"
-          git commit -am "chore: bump plugin pins to latest release tags"
-          git push origin "$branch"
-          gh pr create --fill --body "$(printf 'Automated pin bump (ADR 0049).\n\n```\n%s\n```\n\nRe-verify the combo, then merge.' "$(cat /tmp/bumps.txt)")"
+          # This bundle's pin-bump job lives in ci.yml (this file), not verify-bundle.yml
+          # like the other 3 stacks — the poll must search the workflow THIS repo
+          # actually runs, or it always reports the run as never showing up.
+          BUMP_PINS_WORKFLOW_FILE: ci.yml
+        run: >
+          bash "$GITHUB_WORKSPACE/scripts/bump_pins_pr.sh" flag-approval
+          "${{ steps.pr.outputs.number }}" "${{ steps.pr.outputs.branch }}" "${{ steps.pr.outputs.sha }}"
