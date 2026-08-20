@@ -1,12 +1,12 @@
-# Product Manager Stack — a protoAgent plugin bundle
+# Product Manager — a protoAgent plugin bundle
 
 A **bundle** (ADR 0040): a curated, pinned set of plugins you install with one command.
-`product-stack` stands up a **product-manager** agent — it researches, strategizes, runs
+`product-archetype` stands up a **product-manager** agent — it researches, strategizes, runs
 discovery, writes the specs, and keeps the product's decisions and hypotheses as auditable
 memory, with everything visualized inline.
 
-It's the **Product**-Manager counterpart to [`pm-stack`](https://github.com/protoLabsAI/pm-stack),
-the **Project**-Manager stack (board-driven shipping — decompose an idea and ship it through
+It's the **Product**-Manager counterpart to [`project-manager-archetype`](https://github.com/protoLabsAI/project-manager-archetype),
+the **Project**-Manager archetype (board-driven shipping — decompose an idea and ship it through
 coding agents). Same "PM," two jobs: this one decides *what* to build and *why*; that one drives
 *getting it built*.
 
@@ -20,18 +20,18 @@ coding agents). Same "PM," two jobs: this one decides *what* to build and *why*;
 The pairing is the point: a product manager lives on diagrams, charts, and one-pager mockups.
 The PM toolkit decides and remembers; artifact shows.
 
-The two members are **pinned to release tags** — `product-stack` is a *tested combo*, not
+The two members are **pinned to release tags** — `product-archetype` is a *tested combo*, not
 "whatever's latest." The installer locks the resolved commit SHA in `plugins.lock`; CI re-checks
 the pins weekly and opens a PR when a member cuts a new release (ADR 0049).
 
 ## Install
 
 ```bash
-python -m server plugin install https://github.com/protoLabsAI/product-stack
+python -m server plugin install https://github.com/protoLabsAI/product-archetype
 ```
 
 That fans out and installs each member (pinned in `plugins.lock`). It does **not** enable
-anything — install ≠ enable ≠ trust. To turn the stack on, apply the suggested list to your
+anything — install ≠ enable ≠ trust. To turn the bundle on, apply the suggested list to your
 `config/langgraph-config.yaml`:
 
 ```yaml

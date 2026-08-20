@@ -33,12 +33,12 @@ jobs:
         run: python3 scripts/validate_bundle.py protoagent.bundle.yaml
 
   # ONE candidate at a time (#2645), and the GITHUB_TOKEN approval-required stall made
-  # visible instead of silent — same contract as the other 3 stacks and the protoAgent
+  # visible instead of silent — same contract as the other 3 archetype repos and the protoAgent
   # template, see README.md "Pin-bump PR lifecycle". Logic lives in
   # scripts/bump_pins_pr.sh (#2669) — a real, unit-tested script rather than inline
   # YAML bash. This job's OWN `validate` step above stays the lighter
   # manifest-structure-only contract (deliberate, see the file header comment) — only
-  # the `bump` job's PR-lifecycle bug is shared with the other stacks.
+  # the `bump` job's PR-lifecycle bug is shared with the other archetype repos.
   bump:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ vars.NSC_RUNNER || 'namespace-profile-protolabs-linux' }}
@@ -60,7 +60,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           # This bundle's pin-bump job lives in ci.yml (this file), not verify-bundle.yml
-          # like the other 3 stacks — the poll must search the workflow THIS repo
+          # like the other 3 archetype repos — the poll must search the workflow THIS repo
           # actually runs, or it always reports the run as never showing up.
           BUMP_PINS_WORKFLOW_FILE: ci.yml
         run: >
