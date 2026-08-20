@@ -1,7 +1,7 @@
 # A protoAgent plugin BUNDLE (ADR 0040) — a curated, pinned set of plugins installed
-# together with one command. The Product-Manager counterpart to pm-stack (which is the
-# Project-Manager / board-driven shipping stack). Install:
-#   python -m server plugin install https://github.com/protoLabsAI/product-stack
+# together with one command. The Product-Manager counterpart to project-manager-archetype (which is the
+# Project-Manager / board-driven shipping archetype). Install:
+#   python -m server plugin install https://github.com/protoLabsAI/product-archetype
 #
 # PIN RULES (ADR 0049): members pin release TAGS — legible, and ls-remote-able so the
 # console's update advisory can see a newer release; the installer still locks the
@@ -9,14 +9,14 @@
 # reproducibility truth). Keep member entries ON ONE LINE — scripts/check_bundle_updates.py
 # rewrites the `ref:` token in place (comment-preserving).
 
-id: product-stack
-name: Product Manager Stack
+id: product-archetype
+name: Product Manager
 description: >-
-  A product-manager agent stack — research, strategy, discovery, and specs, with everything
+  A product-manager agent archetype — research, strategy, discovery, and specs, with everything
   visualized inline. Composes the Product Manager toolkit (65 PM skills + a provenance-enforced
   PM Brain + specialist subagents) with generative UI for roadmaps, funnels, personas, and
   journey maps. For board-driven shipping (decompose an idea and ship it through coding agents),
-  see the sibling pm-stack (Project Manager).
+  see the sibling project-manager-archetype (Project Manager).
 
 # The core version this pin set was last verified against (ADR 0049 rule 2).
 verified_against: 0.41.0
